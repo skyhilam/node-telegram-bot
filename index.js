@@ -4,7 +4,8 @@ const htmlParser = require('node-html-parser')
 const Telegraf = require('telegraf')
 const Telegram = require('telegraf/telegram')
 const moment = require('moment')
-const token = '565060405:AAHn5j-1Wyy1U7OoUsFVOQSNom2KRjQgtF0'
+const token = process.env.BOT_TOKEN
+
 
 const api = {
 	async getRates() {
