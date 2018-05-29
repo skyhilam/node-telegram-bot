@@ -3,7 +3,7 @@ const axios = require('axios')
 const htmlParser = require('node-html-parser')
 const Telegraf = require('telegraf')
 const Telegram = require('telegraf/telegram')
-const moment = require('moment')
+const moment = require('moment-timezone')
 const token = process.env.BOT_TOKEN
 
 
@@ -44,10 +44,14 @@ const api = {
 
 async function getMessage() {
 	const nzd = await api.getNZD()
-	const date = moment().format('YYYY-MM-DD')
-	const time = moment().format('hh:mm:ss')
+	const date = moment().tz("Asia/Taipei").format('YYYY-MM-DD')
+	const time = moment().tz("Asia/Taipei").format('hh:mm:ss')
 
-	return `BNU ${nzd[0]}\n\rSell ${nzd[9]}\n\rBuy ${nzd[8]}\n\rDate ${date}\n\rTime ${time}`
+	return {
+		sell: nzd[9],
+		buy: nzd[8],
+		message: `BNU ${nzd[0]}\n\rSell ${nzd[9]}\n\rBuy ${nzd[8]}\n\rDate ${date}\n\rTime ${time}`
+	}
 }
 
 const main = async () => {
@@ -56,7 +60,10 @@ const main = async () => {
 	const bot = new Telegraf(token)
 
 	setInterval(async () => {
-		bot.telegram.sendMessage(412411088, await getMessage())
+		const {message, sell} = await getMessage()
+		if (sell < 5.4) {
+			bot.telegram.sendMessage(412411088, message)
+		}
 	}, 10 * 60 * 1000) //10 minutes
 
 	bot.start((ctx) => {
@@ -65,7 +72,8 @@ const main = async () => {
 	})
 
 	bot.command('/NZD', async (ctx) => {
-		ctx.reply(await getMessage())
+		const {message} = await getMessage()
+		ctx.reply(message)
 	})
 
 	bot.startPolling()
